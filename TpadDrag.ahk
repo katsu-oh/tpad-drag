@@ -2,10 +2,10 @@
 
 ListLines(False)
 ;-----------------------------------------------------------------------------
-;@Ahk2Exe-SetFileVersion 1.0.0.0
+;@Ahk2Exe-SetFileVersion 1.0.1.0
 ;@Ahk2Exe-SetDescription Touchpad Utility "TouchpaDRAGger"
 ;@Ahk2Exe-SetProductName TouchpaDRAGger
-;@Ahk2Exe-SetProductVersion 1.0.0.0
+;@Ahk2Exe-SetProductVersion 1.0.1.0
 ;@Ahk2Exe-SetCopyright Katsuo`, 2026
 ;@Ahk2Exe-SetOrigFilename TpadDrag.exe
 ;-----------------------------------------------------------------------------
@@ -22,6 +22,10 @@ Critical(5)
 
 BeforePreparsed := True
 PrevTickCount := A_TickCount
+StartX := 0
+StartY := 0
+Completed := True
+MoreFingers := False
 
 Device := Buffer(8 + A_PtrSize, 0)
 NumPut("UShort",0x0D, "UShort",0x05, "UInt",0x00000100, "Ptr",A_ScriptHwnd, Device)
@@ -41,6 +45,7 @@ OnTouch(wParam, lParam, msg, hwnd) {
     Global StartX
     Global StartY
     Global Completed
+    Global MoreFingers
 
     RawInputSize := 0
     DllCall("GetRawInputData", "Ptr",lParam, "UInt",0x10000003, "Ptr",0,        "UInt*",&RawInputSize, "UInt",8 + A_PtrSize * 2)
@@ -103,10 +108,11 @@ OnTouch(wParam, lParam, msg, hwnd) {
         X := SumX / ContactCount
         Y := SumY / ContactCount
 
-        If (TickCountDiff(ThisTickCount, PrevTickCount) >= 62) {
+        If (MoreFingers) | (TickCountDiff(ThisTickCount, PrevTickCount) >= 62) {
             StartX := X
             StartY := Y
             Completed := False
+            MoreFingers := False
         } Else If (!Completed) {
             DX := MaxX * 0.1
             DY := MaxY * 0.1
@@ -137,7 +143,10 @@ OnTouch(wParam, lParam, msg, hwnd) {
         }
 
         PrevTickCount := ThisTickCount
-    }    
+
+    } Else If (ContactCount >= 5) {
+        MoreFingers := True
+    }
 }
 
 ;-----------------------------------------------------------------------------
