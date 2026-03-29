@@ -2,10 +2,10 @@
 
 ListLines(False)
 ;-----------------------------------------------------------------------------
-;@Ahk2Exe-SetFileVersion 1.0.1.0
+;@Ahk2Exe-SetFileVersion 1.0.2.0
 ;@Ahk2Exe-SetDescription Touchpad Utility "TouchpaDRAGger"
 ;@Ahk2Exe-SetProductName TouchpaDRAGger
-;@Ahk2Exe-SetProductVersion 1.0.1.0
+;@Ahk2Exe-SetProductVersion 1.0.2.0
 ;@Ahk2Exe-SetCopyright Katsuo`, 2026
 ;@Ahk2Exe-SetOrigFilename TpadDrag.exe
 ;-----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ Critical(5)
 
 #DllLoad "hid"
 
-BeforePreparsed := True
+hDevice_Preparsed := 0
 PrevTickCount := A_TickCount
 StartX := 0
 StartY := 0
@@ -39,7 +39,7 @@ Exit
 OnTouch(wParam, lParam, msg, hwnd) {
     ThisTickCount := A_TickCount
 
-    Global BeforePreparsed
+    Global hDevice_Preparsed
     Global Preparsed
     Global PrevTickCount
     Global StartX
@@ -51,14 +51,19 @@ OnTouch(wParam, lParam, msg, hwnd) {
     DllCall("GetRawInputData", "Ptr",lParam, "UInt",0x10000003, "Ptr",0,        "UInt*",&RawInputSize, "UInt",8 + A_PtrSize * 2)
     RawInput := Buffer(RawInputSize, 0)
     DllCall("GetRawInputData", "Ptr",lParam, "UInt",0x10000003, "Ptr",RawInput, "UInt*",&RawInputSize, "UInt",8 + A_PtrSize * 2)
+    hDevice := NumGet(RawInput, 8, "Ptr")
 
-    If (BeforePreparsed) {
-        hDevice := NumGet(RawInput, 8, "Ptr")
+    If (hDevice != hDevice_Preparsed) {
         PreparsedSize := 0
         DllCall("GetRawInputDeviceInfo", "Ptr",hDevice, "UInt",0x20000005, "Ptr",0,         "UInt*",&PreparsedSize)
         Preparsed := Buffer(PreparsedSize, 0)
-        BeforePreparsed
-     := DllCall("GetRawInputDeviceInfo", "Ptr",hDevice, "UInt",0x20000005, "Ptr",Preparsed, "UInt*",&PreparsedSize) <= 0
+        If (
+        DllCall("GetRawInputDeviceInfo", "Ptr",hDevice, "UInt",0x20000005, "Ptr",Preparsed, "UInt*",&PreparsedSize) > 0
+        ) {
+            hDevice_Preparsed := hDevice
+        } Else {
+            hDevice_Preparsed := 0
+        }
     }
 
     ContactCount := 0
