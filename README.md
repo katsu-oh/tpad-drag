@@ -19,7 +19,7 @@ You will be able to use the following gestures:
 ## Usage
 Run TpadDrag.exe by double‑clicking it, or via Task Scheduler or other methods. Alternatively, you can run TpadDrag.ahk using AutoHotkey v2.0 (64‑bit).
 
-Before using this tool, configure Windows so that the four‑finger left/right swipe gestures are set to "Do nothing."
+Before using this tool, configure Windows so that the four‑finger left/right swipe gestures are set to "Nothing."
 
 To exit the program, end TpadDrag.exe from Task Manager.
 
